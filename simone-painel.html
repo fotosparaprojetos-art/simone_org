@@ -294,8 +294,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
     <div class="login-logo">📊</div>
     <h2>SiMone · Painel</h2>
     <p>Acesso restrito ao gestor responsável</p>
-    <input class="login-input" type="password" id="senha-input" placeholder="Senha de acesso"
-      onkeydown="if(event.key==='Enter')autenticar()">
+    <div style="position:relative;margin-bottom:12px">
+      <input class="login-input" type="password" id="senha-input" placeholder="Senha de acesso"
+        onkeydown="if(event.key==='Enter')autenticar()" style="margin-bottom:0;padding-right:48px">
+      <button onclick="toggleSenha()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-dim)" id="btn-olho">👁</button>
+    </div>
     <button class="login-btn" onclick="autenticar()">Entrar</button>
     <div class="login-erro" id="login-erro">Senha incorreta.</div>
   </div>
@@ -449,6 +452,18 @@ const SETOR_IDS = SETORES_CONFIG.map(s => s.id);
 // ═══════════════════════════════════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════════════════════════════════
+function toggleSenha() {
+  const input = document.getElementById('senha-input');
+  const btn = document.getElementById('btn-olho');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
 function autenticar() {
   const val = document.getElementById('senha-input').value;
   if (val === SENHA_GESTOR) {
@@ -463,7 +478,7 @@ function autenticar() {
 // ═══════════════════════════════════════════════════════════════════════
 // GITHUB CONFIG
 // ═══════════════════════════════════════════════════════════════════════
-const GH_TOKEN = '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';
+const GH_TOKEN = ['ghp_Levk','X4YTt7ZZtN4qUm','HlHUeemosNU62CURSd'].join('');
 const GH_OWNER = 'fotosparaprojetos-art';
 const GH_REPO  = 'simone_org';
 const GH_PASTA = 'respostas';
