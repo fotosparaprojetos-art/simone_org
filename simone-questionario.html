@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SiMone · Questionário</title>
+<style>
+:root {
+  --bg: #F0F4F8;
+  --surface: #FFFFFF;
+  --border: rgba(0,80,160,0.12);
+  --text: #1A2333;
+  --text-dim: #4A5568;
+  --text-faint: #8A96A8;
+  --accent: #005099;
+  --accent-bg: rgba(0,80,153,0.08);
+  --accent-sel: rgba(0,80,153,0.15);
+  --green: #1A7F4B;
+  --green-bg: rgba(26,127,75,0.12);
+  --radius: 14px;
+  --shadow: 0 2px 16px rgba(0,80,160,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 32px;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--accent);
+  color: #fff;
+  padding: 16px 20px 12px;
+  position: sticky; top: 0; z-index: 10;
+}
+.header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.logo { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+.header h1 { font-size: 16px; font-weight: 700; }
+.header p { font-size: 11px; opacity: .75; }
+.progress-bar { height: 3px; background: rgba(255,255,255,0.25); border-radius: 99px; margin-top: 8px; }
+.progress-fill { height: 100%; background: #fff; border-radius: 99px; transition: width .4s ease; }
+.progress-label { font-size: 11px; opacity: .75; margin-top: 4px; }
+
+/* ── WRAP ── */
+.wrap { max-width: 540px; margin: 0 auto; padding: 20px 16px; }
+
+/* ── INTRO ── */
+.intro-card {
+  background: var(--surface); border-radius: var(--radius); padding: 28px 24px;
+  box-shadow: var(--shadow); text-align: center;
+}
+.intro-icon { font-size: 40px; margin-bottom: 16px; }
+.intro-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+.intro-card p { font-size: 14px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px; }
+.intro-card .badge {
+  display: inline-block; background: var(--green-bg); color: var(--green);
+  border-radius: 99px; padding: 4px 14px; font-size: 12px; font-weight: 600; margin-bottom: 20px;
+}
+.setores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.setor-btn {
+  background: var(--surface); border: 2px solid var(--border); border-radius: 10px;
+  padding: 14px 10px; text-align: center; cursor: pointer; transition: all .15s;
+  font-size: 13px; font-weight: 600; color: var(--text-dim);
+}
+.setor-btn:active, .setor-btn.sel {
+  border-color: var(--accent); background: var(--accent-bg); color: var(--accent);
+}
+.setor-btn .setor-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+/* ── BLOCOS ── */
+.bloco-header {
+  background: var(--accent); color: #fff; border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 16px;
+}
+.bloco-header .bloco-letra { font-size: 11px; opacity: .75; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.bloco-header h3 { font-size: 16px; font-weight: 700; margin: 2px 0; }
+.bloco-header p { font-size: 12px; opacity: .8; line-height: 1.5; margin-top: 4px; }
+
+/* ── QUESTÃO ── */
+.questao {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); margin-bottom: 14px;
+}
+.questao-id { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: .06em;
+  text-transform: uppercase; margin-bottom: 8px; }
+.questao-texto { font-size: 14px; line-height: 1.6; color: var(--text); margin-bottom: 16px; }
+.questao-ancora { font-size: 11px; color: var(--text-faint); margin-bottom: 12px;
+  padding: 6px 10px; background: var(--bg); border-radius: 6px; }
+
+/* ── OPÇÕES ESCALA ── */
+.opcoes { display: flex; flex-direction: column; gap: 8px; }
+.opcao {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border: 2px solid var(--border); border-radius: 10px; cursor: pointer;
+  transition: all .15s; background: var(--surface);
+}
+.opcao:active, .opcao.sel {
+  border-color: var(--accent); background: var(--accent-bg);
+}
+.opcao-bolinha {
+  width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.opcao.sel .opcao-bolinha { border-color: var(--accent); background: var(--accent); }
+.opcao.sel .opcao-bolinha::after { content: ''; width: 8px; height: 8px; background: #fff; border-radius: 50%; }
+.opcao-label { font-size: 13px; color: var(--text-dim); flex: 1; }
+.opcao.sel .opcao-label { color: var(--accent); font-weight: 600; }
+
+/* ── MULTI-SETOR ── */
+.multi-wrap { display: flex; flex-direction: column; gap: 8px; }
+.multi-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border: 2px solid var(--border); border-radius: 10px; cursor: pointer;
+  transition: all .15s;
+}
+.multi-item:active, .multi-item.sel {
+  border-color: var(--accent); background: var(--accent-bg);
+}
+.multi-check {
+  width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: all .15s; font-size: 12px;
+}
+.multi-item.sel .multi-check { border-color: var(--accent); background: var(--accent); color: #fff; }
+.multi-label { font-size: 13px; color: var(--text-dim); }
+.multi-item.sel .multi-label { color: var(--accent); font-weight: 600; }
+.nenhum-label { font-size: 12px; color: var(--text-faint); margin-top: 4px; font-style: italic; }
+
+/* ── BOTÕES ── */
+.btn {
+  width: 100%; padding: 16px; border-radius: 10px; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: all .15s;
+  margin-top: 8px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:active { opacity: .85; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.btn-ghost { background: transparent; border: 2px solid var(--border); color: var(--text-dim); }
+
+/* ── NAVEGAR ── */
+.nav-row { display: flex; gap: 10px; margin-top: 16px; }
+.nav-row .btn { margin-top: 0; }
+.btn-back { background: transparent; border: 2px solid var(--border); color: var(--text-dim); flex: 0 0 auto; width: auto; padding: 16px 20px; }
+
+/* ── AVISO ── */
+.aviso {
+  background: #FFF8E1; border: 1px solid #FFD54F; border-radius: 10px;
+  padding: 12px 14px; font-size: 12px; color: #795548; margin-bottom: 16px; line-height: 1.5;
+}
+.aviso strong { color: #5D4037; }
+
+/* ── FIM ── */
+.fim-card {
+  background: var(--surface); border-radius: var(--radius); padding: 32px 24px;
+  box-shadow: var(--shadow); text-align: center;
+}
+.fim-icon { font-size: 48px; margin-bottom: 16px; }
+.fim-card h2 { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 10px; }
+.fim-card p { font-size: 14px; color: var(--text-dim); line-height: 1.6; margin-bottom: 20px; }
+.download-info {
+  background: var(--accent-bg); border-radius: 10px; padding: 14px;
+  font-size: 12px; color: var(--accent); margin-bottom: 20px; line-height: 1.5;
+}
+
+/* ── ERRO ── */
+.erro-msg {
+  background: #FDE8E8; border: 1px solid #F5A5A5; border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; color: #C62828; margin-top: 8px; display: none;
+}
+.erro-msg.vis { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ INTRO ══ -->
+<div id="s-intro" class="screen active">
+  <div style="background:var(--accent);padding:24px 20px 20px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">🏦</div>
+    <h1 style="color:#fff;font-size:20px;font-weight:800">SiMone Organizacional</h1>
+    <p style="color:rgba(255,255,255,.75);font-size:13px;margin-top:4px">Mapa de Calor Sistêmico · Caixa Econômica Federal</p>
+  </div>
+  <div class="wrap">
+    <div class="intro-card">
+
+      <div class="intro-icon">👋</div>
+      <h2>Olá, que bom ter você aqui!</h2>
+
+      <p style="font-size:14px;line-height:1.7;margin-bottom:16px">
+        Este questionário faz parte de um projeto de <strong>melhoria do fluxo de trabalho da agência</strong>. Queremos entender melhor como as demandas circulam entre os setores — onde o trabalho flui bem e onde encontra obstáculos — para que possamos melhorar o dia a dia de todos.
+      </p>
+
+      <p style="font-size:14px;line-height:1.7;margin-bottom:20px">
+        Não há respostas certas ou erradas. O que importa é a sua percepção honesta sobre o que você vive no seu setor.
+      </p>
+
+      <div class="aviso" style="text-align:left;font-size:13px;line-height:1.8">
+        <strong>🔒 Sobre sua privacidade — leia com atenção:</strong><br><br>
+
+        <strong>Por que recebi este link?</strong><br>
+        Sua matrícula foi usada <em>apenas</em> para enviar este convite. Ela não será registrada em nenhuma resposta e não ficará associada ao que você responder.<br><br>
+
+        <strong>O que fica registrado?</strong><br>
+        Somente o setor que você selecionar abaixo. Como cada setor tem mais de um colaborador, não é possível identificar quem respondeu o quê.<br><br>
+
+        <strong>Quem vai ver os resultados?</strong><br>
+        O gestor da unidade receberá um <em>consolidado geral</em> das respostas da agência ao final da coleta. Em nenhum momento será disponibilizado qualquer resultado individualizado ou associado a uma matrícula específica.<br><br>
+
+        <strong>Este link é seu.</strong><br>
+        Ele é de uso único e pessoal. Após responder, é desativado automaticamente.
+      </div>
+
+      <div class="badge" style="margin-top:20px">🔒 Anônimo · ~10 minutos</div>
+
+      <p style="font-size:13px;font-weight:600;color:var(--text);margin-top:20px;margin-bottom:12px">Selecione seu setor:</p>
+      <div class="setores-grid" id="setores-grid"></div>
+      <div class="erro-msg" id="erro-setor">Selecione um setor para continuar.</div>
+
+      <div class="aviso" style="margin-top:16px">
+        <strong>Período de referência:</strong> Todas as perguntas se referem aos <strong>últimos 30 dias</strong>. Pense no que você observou no seu setor nesse período.
+      </div>
+
+      <button class="btn btn-primary" onclick="iniciarQuestionario()">Começar questionário →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ ENVIANDO ══ -->
+<div id="s-enviando" class="screen">
+  <div style="background:var(--accent);padding:24px 20px 20px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">⏳</div>
+    <h1 style="color:#fff;font-size:18px;font-weight:800">Enviando respostas...</h1>
+  </div>
+  <div class="wrap">
+    <div class="intro-card">
+      <div class="intro-icon">📡</div>
+      <h2 style="color:var(--accent)">Aguarde</h2>
+      <p>Suas respostas estão sendo enviadas. Não feche esta página.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ ERRO ENVIO ══ -->
+<div id="s-erro-envio" class="screen">
+  <div style="background:#C62828;padding:24px 20px 20px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">⚠️</div>
+    <h1 style="color:#fff;font-size:18px;font-weight:800">Erro no envio</h1>
+  </div>
+  <div class="wrap">
+    <div class="intro-card">
+      <div class="intro-icon">📵</div>
+      <h2 style="color:#C62828">Não foi possível enviar</h2>
+      <p id="envio-erro-msg" style="color:#C62828;font-weight:600;margin-bottom:12px"></p>
+      <p>Verifique sua conexão e tente novamente.</p>
+      <button class="btn btn-primary" style="margin-top:20px" onclick="finalizar()">Tentar novamente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ JÁ RESPONDEU ══ -->
+<div id="s-ja-respondeu" class="screen">
+  <div style="background:var(--accent);padding:24px 20px 20px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">🔒</div>
+    <h1 style="color:#fff;font-size:18px;font-weight:800">Participação já registrada</h1>
+  </div>
+  <div class="wrap">
+    <div class="intro-card">
+      <div class="intro-icon">✅</div>
+      <h2 style="color:var(--accent)">Você já respondeu</h2>
+      <p>Este dispositivo já registrou uma participação. Cada pessoa responde apenas uma vez.</p>
+      <p style="font-size:13px;color:var(--text-faint);margin-top:12px">Se acredita que isso é um erro, entre em contato com o gestor responsável.</p>
+    </div>
+  </div>
+</div>
+<div id="s-questoes" class="screen">
+  <div class="header" id="header-questoes">
+    <div class="header-top">
+      <div class="logo">Si</div>
+      <div>
+        <h1>SiMone Organizacional</h1>
+        <p id="header-sub">Carregando...</p>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 de 30</div>
+  </div>
+
+  <div class="wrap" id="questao-wrap"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ FIM ══ -->
+<div id="s-fim" class="screen">
+  <div style="background:var(--green);padding:24px 20px 20px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">✅</div>
+    <h1 style="color:#fff;font-size:18px;font-weight:800">Questionário concluído!</h1>
+  </div>
+  <div class="wrap">
+    <div class="fim-card">
+      <div class="fim-icon">🎉</div>
+      <h2>Obrigado pela participação!</h2>
+      <p>Suas respostas foram registradas de forma <strong>completamente anônima</strong>. Sua matrícula não foi associada a nenhuma resposta — o único dado registrado foi o setor que você selecionou.</p>
+      <div class="download-info">
+        ✅ Este link foi desativado. Não será possível responder novamente por este convite.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO DE SETORES
+// ═══════════════════════════════════════════════════════════════════════
+const SETORES = [
+  { id: 'triagem',            label: 'Triagem',             icon: '' },
+  { id: 'atendimento_varejo', label: 'Atend. Varejo',       icon: '' },
+  { id: 'gerencia_carteira',  label: 'Gerência Carteira',   icon: '' },
+  { id: 'caixas_tesouraria',  label: 'Caixas / Tesouraria', icon: '' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// ESTRUTURA DO QUESTIONÁRIO
+// ═══════════════════════════════════════════════════════════════════════
+const ESCALA_FREQ = [
+  { v: 0, l: 'Nunca ou quase nunca' },
+  { v: 1, l: 'Poucas vezes' },
+  { v: 2, l: 'Frequentemente' },
+  { v: 3, l: 'Quase sempre ou sempre' },
+];
+
+const BLOCOS = [
+  {
+    id: 'A', titulo: 'Carga e Volume Operacional',
+    desc: 'Com que intensidade o setor trabalha? Estabelece a linha de base para os demais índices.',
+    perguntas: [
+      { id:'A1', texto:'Com que frequência o volume de demandas do seu setor ultrapassou a capacidade de atendimento no horário normal?', escala: ESCALA_FREQ },
+      { id:'A2', texto:'Com que frequência o seu setor precisou priorizar demandas, deixando outras sem atendimento ou em espera prolongada?', escala: ESCALA_FREQ },
+      { id:'A3', texto:'Com que frequência uma demanda que parecia simples se revelou mais complexa durante o atendimento, exigindo mais tempo do que o previsto?', escala: ESCALA_FREQ },
+      { id:'A4', texto:'Em média, quanto do tempo diário do seu setor foi dedicado a demandas que não pertencem à competência do setor?', escala:[
+        { v:0, l:'Quase nenhum — menos de 5% do tempo' },
+        { v:1, l:'Até 25% do tempo' },
+        { v:2, l:'Entre 25% e 50% do tempo' },
+        { v:3, l:'Mais de 50% do tempo' },
+      ]},
+    ]
+  },
+  {
+    id: 'B', titulo: 'Recebimento de Demandas Indevidas',
+    desc: 'O que chega ao setor mas não deveria. Alimenta a coluna "recebe de" na matriz de calor.',
+    perguntas: [
+      { id:'B1', texto:'Com que frequência chegaram ao seu setor demandas que deveriam ter sido resolvidas em outro setor, sem necessidade de envolvimento do seu?', escala: ESCALA_FREQ },
+      { id:'B2', texto:'Quando isso aconteceu, de quais setores essas demandas indevidas costumaram vir?', escala: 'multiSetor', ancora: false },
+      { id:'B3', texto:'Com que frequência o seu setor recebeu demandas incompletas ou com informações insuficientes, que exigiram retrabalho antes de poder atendê-las?', escala: ESCALA_FREQ },
+      { id:'B4', texto:'Com que frequência o cliente chegou ao seu setor já tendo passado por outro setor onde não teve a demanda resolvida?', escala: ESCALA_FREQ },
+    ]
+  },
+  {
+    id: 'C', titulo: 'Encaminhamento e Devolução',
+    desc: 'O que o setor envia para outros — e o que volta sem resolução.',
+    perguntas: [
+      { id:'C1', texto:'Com que frequência o seu setor precisou redirecionar uma demanda para outro setor porque ela não podia ser resolvida por vocês?', escala: ESCALA_FREQ },
+      { id:'C2', texto:'Quando isso aconteceu, para quais setores as demandas costumaram ser encaminhadas?', escala: 'multiSetor', ancora: false },
+      { id:'C3', texto:'Com que frequência uma demanda que o seu setor encaminhou para outro setor voltou sem ter sido resolvida?', escala: ESCALA_FREQ },
+      { id:'C4', texto:'Quando isso aconteceu, de qual setor a demanda costumou voltar?', escala: 'multiSetor', ancora: false },
+      { id:'C5', texto:'Com que frequência o seu setor recebeu de volta uma demanda que havia sido originada no próprio setor e encaminhada a outro?', escala: ESCALA_FREQ },
+    ]
+  },
+  {
+    id: 'D', titulo: 'Avaliação do Grupo',
+    desc: 'Como o próprio setor se vê. Permite calcular o gap perceptivo com a visão externa.',
+    perguntas: [
+      { id:'D1', texto:'Com que frequência a distribuição de demandas entre os membros do grupo foi desigual, com alguns membros absorvendo significativamente mais que outros?', escala: ESCALA_FREQ },
+      { id:'D2', texto:'Com que frequência houve tipos de demanda que o grupo tendeu a postergar ou encaminhar a outro setor antes de tentar resolver internamente?', escala: ESCALA_FREQ },
+      { id:'D3', texto:'Com que frequência o resultado de um atendimento dependeu de qual membro do grupo o realizou, em vez de ser padronizado?', escala: ESCALA_FREQ },
+      { id:'D4', texto:'Com que frequência membros do grupo precisaram consultar colegas ou solicitar ajuda para resolver demandas que deveriam ser de domínio individual?', escala: ESCALA_FREQ },
+      { id:'D5', texto:'Com que frequência o grupo identificou situações em que uma demanda poderia ter sido resolvida internamente mas acabou sendo encaminhada a outro setor?', escala: ESCALA_FREQ },
+    ]
+  },
+  {
+    id: 'E', titulo: 'Impacto Operacional',
+    desc: 'Consequências concretas dos problemas de fluxo: interrupção, fila, desgaste.',
+    perguntas: [
+      { id:'E1', texto:'Com que frequência o seu setor teve que interromper um atendimento em andamento para lidar com uma demanda urgente que não era de competência do setor?', escala: ESCALA_FREQ },
+      { id:'E2', texto:'Com que frequência a fila ou o tempo de espera no seu setor aumentou por causa de demandas que chegaram direcionadas incorretamente?', escala: ESCALA_FREQ },
+      { id:'E3', texto:'Com que frequência o cliente chegou ao seu setor visivelmente frustrado por ter sido encaminhado de um setor para outro sem resolução?', escala: ESCALA_FREQ },
+      { id:'E4', texto:'Com que frequência o seu setor precisou refazer um procedimento que já havia sido iniciado em outro setor, mas de forma incorreta ou incompleta?', escala: ESCALA_FREQ },
+      { id:'E5', texto:'Qual o nível de desgaste que os problemas de direcionamento de demandas geraram na equipe do seu setor?', escala:[
+        { v:0, l:'Baixo — não afetou significativamente' },
+        { v:1, l:'Moderado — percebido mas absorvido' },
+        { v:2, l:'Alto — gerou tensão e queda de rendimento' },
+        { v:3, l:'Muito alto — comprometeu a operação' },
+      ]},
+    ]
+  },
+  {
+    id: 'F', titulo: 'Clareza Sistêmica e Fluxo',
+    desc: 'O setor sabe o que é dele? Há critérios definidos para encaminhar demandas?',
+    perguntas: [
+      { id:'F1', texto:'No seu setor, existe uma definição clara e documentada de quais demandas são de competência do setor e quais não são?', escala:[
+        { v:0, l:'Sim, clara e seguida por todos' },
+        { v:1, l:'Existe, mas está incompleta' },
+        { v:2, l:'Existe, mas ninguém segue' },
+        { v:3, l:'Não existe' },
+      ]},
+      { id:'F2', texto:'Quando houve dúvida sobre para qual setor encaminhar uma demanda, com que frequência a decisão dependeu de quem estava disponível no momento, em vez de seguir um critério definido?', escala: ESCALA_FREQ },
+      { id:'F3', texto:'Com que frequência o seu setor recebeu demandas de um determinado setor que sistematicamente deveriam ir para outro?', escala: ESCALA_FREQ },
+      { id:'F4', texto:'Na sua avaliação, quais setores têm mais dificuldade em saber o que encaminhar corretamente para o seu setor?', escala: 'multiSetor', ancora: false },
+    ]
+  },
+  {
+    id: 'G', titulo: 'Saúde Operacional',
+    desc: 'Indicadores de desgaste crônico que precedem afastamentos. Não é pesquisa de satisfação.',
+    perguntas: [
+      { id:'G1', texto:'Com que frequência o seu setor terminou o expediente com demandas acumuladas que precisariam ter sido resolvidas naquele dia?', escala: ESCALA_FREQ },
+      { id:'G2', texto:'Com que frequência membros do seu setor expressaram cansaço ou desalento relacionado à repetição de problemas de fluxo que não se resolvem?', escala: ESCALA_FREQ },
+      { id:'G3', texto:'Com que frequência o esforço do seu setor para resolver um problema de direcionamento de demanda resultou na mesma situação se repetindo nos dias seguintes?', escala: ESCALA_FREQ },
+      { id:'G4', texto:'Houve casos de afastamento, licença médica ou redução de capacidade no seu setor que você associaria ao estresse operacional descrito neste questionário?', escala:[
+        { v:0, l:'Não — sem casos associados' },
+        { v:1, l:'Possivelmente 1 caso' },
+        { v:2, l:'Sim, alguns casos' },
+        { v:3, l:'Sim, situação recorrente' },
+      ]},
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════════════════════
+let setorSelecionado = null;
+let respostas = {};
+let todasPerguntas = [];
+let indicePergunta = 0;
+let indicePagina = 0; // índice do bloco atual
+
+// Montar lista plana de perguntas
+BLOCOS.forEach(b => b.perguntas.forEach(p => {
+  todasPerguntas.push({ ...p, bloco: b.id, blocoTitulo: b.titulo });
+}));
+
+// ═══════════════════════════════════════════════════════════════════════
+// INTRO
+// ═══════════════════════════════════════════════════════════════════════
+function renderSetores() {
+  const grid = document.getElementById('setores-grid');
+  grid.innerHTML = SETORES.map(s => `
+    <div class="setor-btn" id="sb-${s.id}" onclick="selecionarSetor('${s.id}')">
+      ${s.label}
+    </div>
+  `).join('');
+}
+
+function selecionarSetor(id) {
+  setorSelecionado = id;
+  document.querySelectorAll('.setor-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('sb-' + id)?.classList.add('sel');
+  document.getElementById('erro-setor').classList.remove('vis');
+}
+
+function iniciarQuestionario() {
+  if (!setorSelecionado) {
+    document.getElementById('erro-setor').classList.add('vis');
+    return;
+  }
+  if (localStorage.getItem('simone_respondeu')) {
+    mostrarTela('s-ja-respondeu');
+    return;
+  }
+  indicePergunta = 0;
+  respostas = {};
+  mostrarTela('s-questoes');
+  renderPergunta();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// QUESTÕES
+// ═══════════════════════════════════════════════════════════════════════
+function setorLabel(id) {
+  return SETORES.find(s => s.id === id)?.label || id;
+}
+
+function outrosSetores() {
+  return SETORES.filter(s => s.id !== setorSelecionado);
+}
+
+function renderPergunta() {
+  const total = todasPerguntas.length;
+  const p = todasPerguntas[indicePergunta];
+  const bloco = BLOCOS.find(b => b.id === p.bloco);
+  const pct = Math.round((indicePergunta / total) * 100);
+
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${indicePergunta} de ${total} perguntas`;
+  document.getElementById('header-sub').textContent = `Bloco ${p.bloco} — ${bloco.titulo}`;
+
+  const wrap = document.getElementById('questao-wrap');
+
+  // Mostrar header do bloco se mudou
+  const blocoAnterior = indicePergunta > 0 ? todasPerguntas[indicePergunta - 1].bloco : null;
+  const mostrarHeader = p.bloco !== blocoAnterior;
+
+  let html = '';
+  if (mostrarHeader) {
+    html += `
+      <div class="bloco-header">
+        <div class="bloco-letra">Bloco ${bloco.id}</div>
+        <h3>${bloco.titulo}</h3>
+        <p>${bloco.desc}</p>
+      </div>
+    `;
+  }
+
+  html += `<div class="questao">
+    <div class="questao-id">${p.id}</div>
+    <div class="questao-texto">Nos últimos 30 dias: ${p.texto}</div>`;
+
+  if (p.ancora !== false) {
+    html += `<div class="questao-ancora">⏱ Período de referência: últimos 30 dias</div>`;
+  }
+
+  if (p.escala === 'multiSetor') {
+    const val = respostas[p.id] || [];
+    html += `<div class="multi-wrap" id="multi-wrap-${p.id}">
+      ${outrosSetores().map(s => `
+        <div class="multi-item ${val.includes(s.id) ? 'sel' : ''}" onclick="toggleMulti('${p.id}','${s.id}',this)">
+          <div class="multi-check">${val.includes(s.id) ? '✓' : ''}</div>
+          <span class="multi-label">${s.icon || ''} ${s.label}</span>
+        </div>
+      `).join('')}
+    </div>
+    <p class="nenhum-label">Selecione todos que se aplicam. Pode deixar em branco se não houve.</p>`;
+  } else {
+    const val = respostas[p.id];
+    html += `<div class="opcoes">
+      ${p.escala.map(o => `
+        <div class="opcao ${val === o.v ? 'sel' : ''}" onclick="selecionarOpcao('${p.id}',${o.v},this)">
+          <div class="opcao-bolinha"></div>
+          <span class="opcao-label">${o.l}</span>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  html += `</div>`; // fecha .questao
+
+  // Botões de navegação
+  html += `<div class="nav-row">`;
+  if (indicePergunta > 0) {
+    html += `<button class="btn btn-back" onclick="voltar()">← Voltar</button>`;
+  }
+  const ehUltima = indicePergunta === total - 1;
+  const label = ehUltima ? 'Finalizar →' : 'Próxima →';
+  const desabilitado = p.escala !== 'multiSetor' && respostas[p.id] === undefined ? 'disabled' : '';
+  html += `<button class="btn btn-primary" id="btn-avancar" ${desabilitado} onclick="avancar()">${label}</button>`;
+  html += `</div>`;
+
+  wrap.innerHTML = html;
+  wrap.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function selecionarOpcao(id, valor, el) {
+  respostas[id] = valor;
+  // Atualizar visual
+  el.closest('.opcoes').querySelectorAll('.opcao').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  // Habilitar botão
+  const btn = document.getElementById('btn-avancar');
+  if (btn) btn.removeAttribute('disabled');
+}
+
+function toggleMulti(id, setorId, el) {
+  if (!respostas[id]) respostas[id] = [];
+  const idx = respostas[id].indexOf(setorId);
+  if (idx >= 0) {
+    respostas[id].splice(idx, 1);
+    el.classList.remove('sel');
+    el.querySelector('.multi-check').textContent = '';
+  } else {
+    respostas[id].push(setorId);
+    el.classList.add('sel');
+    el.querySelector('.multi-check').textContent = '✓';
+  }
+}
+
+function avancar() {
+  const p = todasPerguntas[indicePergunta];
+  // Validar escala numérica
+  if (p.escala !== 'multiSetor' && respostas[p.id] === undefined) return;
+
+  indicePergunta++;
+  if (indicePergunta >= todasPerguntas.length) {
+    finalizar();
+  } else {
+    renderPergunta();
+  }
+}
+
+function voltar() {
+  if (indicePergunta > 0) {
+    indicePergunta--;
+    renderPergunta();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// GITHUB CONFIG
+// ═══════════════════════════════════════════════════════════════════════
+const GH_TOKEN = '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';
+const GH_OWNER = 'fotosparaprojetos-art';
+const GH_REPO  = 'simone_org';
+const GH_PASTA = 'respostas';
+
+// ═══════════════════════════════════════════════════════════════════════
+// FINALIZAR
+// ═══════════════════════════════════════════════════════════════════════
+async function finalizar() {
+  const dados = {
+    setor: setorSelecionado,
+    timestamp: new Date().toISOString(),
+    respostas: respostas,
+  };
+
+  mostrarTela('s-enviando');
+
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const nomeArquivo = `${GH_PASTA}/simone-${setorSelecionado}-${ts}.json`;
+  const conteudo = btoa(unescape(encodeURIComponent(JSON.stringify(dados, null, 2))));
+
+  try {
+    const resp = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${nomeArquivo}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GH_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: `resposta ${setorSelecionado} ${ts}`,
+        content: conteudo,
+      }),
+    });
+
+    if (resp.ok) {
+      if (tokenAtual) await queimarToken(tokenAtual);
+      localStorage.setItem('simone_respondeu', '1');
+      mostrarTela('s-fim');
+    } else {
+      const err = await resp.json();
+      mostrarErrroEnvio(err.message || 'Erro desconhecido');
+    }
+  } catch(e) {
+    mostrarErrroEnvio('Sem conexão com a internet.');
+  }
+}
+
+function mostrarErrroEnvio(msg) {
+  document.getElementById('envio-erro-msg').textContent = msg;
+  mostrarTela('s-erro-envio');
+}
+
+function reiniciar() {
+  setorSelecionado = null;
+  respostas = {};
+  indicePergunta = 0;
+  document.querySelectorAll('.setor-btn').forEach(b => b.classList.remove('sel'));
+  mostrarTela('s-intro');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════════════════════════════════
+function mostrarTela(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TOKENS
+// ═══════════════════════════════════════════════════════════════════════
+const TOKENS_ARQUIVO = 'tokens/tokens.json';
+let tokenAtual = null;
+
+async function validarToken(token) {
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${TOKENS_ARQUIVO}`,
+      { headers: { 'Authorization': `token ${GH_TOKEN}` } }
+    );
+    if (!r.ok) return 'invalido';
+    const data = await r.json();
+    const tokens = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    const found = tokens.find(t => t.token === token);
+    if (!found) return 'invalido';
+    if (found.usado) return 'usado';
+    return 'valido';
+  } catch(e) {
+    return 'erro';
+  }
+}
+
+async function queimarToken(token) {
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${TOKENS_ARQUIVO}`,
+      { headers: { 'Authorization': `token ${GH_TOKEN}` } }
+    );
+    if (!r.ok) return;
+    const data = await r.json();
+    const tokens = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    const idx = tokens.findIndex(t => t.token === token);
+    if (idx >= 0) tokens[idx].usado = true;
+    const conteudo = btoa(unescape(encodeURIComponent(JSON.stringify(tokens, null, 2))));
+    await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${TOKENS_ARQUIVO}`,
+      {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${GH_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `token usado: ${token}`, content: conteudo, sha: data.sha }),
+      }
+    );
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+renderSetores();
+
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  tokenAtual = params.get('token');
+
+  if (!tokenAtual) {
+    // Sem token na URL — modo legado localStorage
+    if (localStorage.getItem('simone_respondeu')) {
+      mostrarTela('s-ja-respondeu');
+    }
+    return;
+  }
+
+  // Com token — validar
+  mostrarTela('s-enviando');
+  document.querySelector('#s-enviando h1').textContent = 'Verificando convite...';
+  document.querySelector('#s-enviando p').textContent = 'Aguarde um momento.';
+
+  const status = await validarToken(tokenAtual);
+
+  if (status === 'valido') {
+    mostrarTela('s-intro');
+  } else if (status === 'usado') {
+    mostrarTela('s-ja-respondeu');
+  } else if (status === 'invalido') {
+    mostrarTela('s-ja-respondeu');
+    document.querySelector('#s-ja-respondeu h2').textContent = 'Link inválido';
+    document.querySelector('#s-ja-respondeu p').textContent = 'Este link de convite não é reconhecido. Entre em contato com o gestor.';
+  } else {
+    // Erro de conexão — deixa tentar responder
+    mostrarTela('s-intro');
+  }
+})();
+</script>
+</body>
+</html>
