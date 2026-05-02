@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiMone · Painel de Diagnóstico</title>
+<style>
+:root {
+  --bg: #0E1117;
+  --surface: #161B27;
+  --surface2: #1E2535;
+  --border: rgba(255,255,255,0.07);
+  --accent: #4F8EF7;
+  --accent-dim: rgba(79,142,247,0.12);
+  --text: #E8EDF5;
+  --text-dim: #7A86A0;
+  --text-faint: #4A5568;
+  --green: #34D399;
+  --green-bg: rgba(52,211,153,0.12);
+  --yellow: #FBBF24;
+  --yellow-bg: rgba(251,191,36,0.12);
+  --orange: #F97316;
+  --orange-bg: rgba(249,115,22,0.12);
+  --red: #F87171;
+  --red-bg: rgba(248,113,113,0.12);
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── LOGIN ── */
+.login-overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.login-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 380px;
+  box-shadow: var(--shadow); text-align: center;
+}
+.login-logo { font-size: 40px; margin-bottom: 16px; }
+.login-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.login-card p { font-size: 13px; color: var(--text-dim); margin-bottom: 28px; }
+.login-input {
+  width: 100%; padding: 14px 16px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  font-size: 15px; outline: none; margin-bottom: 12px; transition: border .2s;
+}
+.login-input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%; padding: 14px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: opacity .15s;
+}
+.login-btn:hover { opacity: .88; }
+.login-erro { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
+
+/* ── LAYOUT PRINCIPAL ── */
+.main { display: none; }
+.main.vis { display: block; }
+
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-logo { display: flex; align-items: center; gap: 10px; }
+.topbar-logo .mark {
+  width: 36px; height: 36px; background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
+}
+.topbar-logo h1 { font-size: 16px; font-weight: 700; }
+.topbar-logo p { font-size: 11px; color: var(--text-dim); }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.periodo-badge {
+  font-size: 11px; color: var(--text-dim); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px;
+}
+
+/* ── UPLOAD ZONE ── */
+.upload-section {
+  max-width: 800px; margin: 60px auto; padding: 0 24px; text-align: center;
+}
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 60px 40px; cursor: pointer; transition: all .2s; position: relative;
+}
+.upload-zone:hover, .upload-zone.drag {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 48px; margin-bottom: 16px; }
+.upload-zone h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.upload-zone p { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+.upload-hint {
+  font-size: 12px; color: var(--text-faint); margin-top: 16px;
+  background: var(--surface2); border-radius: 8px; padding: 10px 16px; display: inline-block;
+}
+.upload-counter {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 16px; margin-top: 12px; font-size: 13px; color: var(--accent); display: none;
+}
+.upload-btn {
+  background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  padding: 12px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+  margin-top: 16px; transition: opacity .15s; display: none;
+}
+.upload-btn:hover { opacity: .88; }
+
+/* ── PAINEL ── */
+.painel { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: none; }
+.painel.vis { display: block; }
+
+/* ── GRID SUMÁRIO ── */
+.sumario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+.sumario-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; transition: border .2s;
+}
+.sumario-card h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin-bottom: 6px; }
+.sumario-card .val { font-size: 28px; font-weight: 800; }
+.sumario-card .sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+/* ── SEÇÃO ── */
+.secao { margin-bottom: 36px; }
+.secao-titulo {
+  font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-dim); margin-bottom: 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── ÍNDICES POR SETOR ── */
+.indices-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.setor-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; overflow: hidden;
+}
+.setor-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.setor-card-header h3 { font-size: 15px; font-weight: 700; }
+.setor-card-header .igs { font-size: 22px; font-weight: 800; }
+.indice-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.indice-nome { font-size: 11px; font-weight: 700; color: var(--text-dim); width: 36px; flex-shrink: 0; }
+.indice-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.indice-bar { height: 100%; border-radius: 99px; transition: width .6s ease; }
+.indice-val { font-size: 12px; font-weight: 700; width: 28px; text-align: right; flex-shrink: 0; }
+.indice-label { font-size: 10px; color: var(--text-faint); width: 48px; flex-shrink: 0; }
+.respondentes-badge {
+  font-size: 11px; color: var(--text-faint); margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── FAIXAS ── */
+.faixa-baixo  { color: var(--green); }
+.faixa-medio  { color: var(--yellow); }
+.faixa-alto   { color: var(--orange); }
+.faixa-critico{ color: var(--red); }
+.bar-baixo  { background: var(--green); }
+.bar-medio  { background: var(--yellow); }
+.bar-alto   { background: var(--orange); }
+.bar-critico{ background: var(--red); }
+
+/* ── MATRIZ ── */
+.matriz-wrap { overflow-x: auto; }
+.matriz {
+  border-collapse: collapse; width: 100%;
+  font-size: 12px; border-radius: var(--radius); overflow: hidden;
+}
+.matriz th, .matriz td {
+  padding: 12px 14px; text-align: center; border: 1px solid var(--border);
+}
+.matriz th { background: var(--surface2); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); }
+.matriz td.origem { background: var(--surface2); font-weight: 700; font-size: 12px; text-align: left; }
+.matriz td { position: relative; font-weight: 700; }
+.cell-val { position: relative; z-index: 1; }
+.cell-bg { position: absolute; inset: 0; opacity: .35; }
+.diagonal { background: var(--bg) !important; color: var(--text-faint) !important; font-size: 11px; }
+
+/* ── GAP PERCEPTIVO ── */
+.gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.gap-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px;
+}
+.gap-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.gap-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
+.gap-row span { color: var(--text-dim); }
+.gap-val { font-weight: 700; }
+.gap-delta { font-size: 15px; font-weight: 800; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.gap-insuf { font-size: 11px; color: var(--text-faint); font-style: italic; margin-top: 8px; }
+
+/* ── IES DESTAQUE ── */
+.ies-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.ies-card {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  border-left: 4px solid var(--border);
+}
+.ies-card.baixo  { border-left-color: var(--green); }
+.ies-card.medio  { border-left-color: var(--yellow); }
+.ies-card.alto   { border-left-color: var(--orange); }
+.ies-card.critico{ border-left-color: var(--red); }
+.ies-setor { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+.ies-val { font-size: 32px; font-weight: 800; }
+.ies-label { font-size: 12px; margin-top: 4px; }
+
+/* ── PADRÕES ── */
+.padroes-list { display: flex; flex-direction: column; gap: 12px; }
+.padrao-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; display: flex; gap: 16px; align-items: flex-start;
+}
+.padrao-icon { font-size: 28px; flex-shrink: 0; }
+.padrao-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.padrao-body .setores-afetados { font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+.padrao-body p { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+.padrao-severidade { font-size: 11px; font-weight: 700; margin-top: 8px; padding: 3px 10px;
+  border-radius: 99px; display: inline-block; }
+.sev-alto { background: var(--orange-bg); color: var(--orange); }
+.sev-critico { background: var(--red-bg); color: var(--red); }
+.sev-medio { background: var(--yellow-bg); color: var(--yellow); }
+
+/* ── ABAS ── */
+.abas { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+.aba {
+  padding: 12px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text-dim); border-bottom: 2px solid transparent; transition: all .2s;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.aba.ativa { color: var(--accent); border-bottom-color: var(--accent); }
+.aba:hover:not(.ativa) { color: var(--text); }
+.aba-conteudo { display: none; }
+.aba-conteudo.ativa { display: block; }
+
+/* ── TOKENS ── */
+.tokens-wrap { max-width: 700px; margin: 32px auto; padding: 0 24px; }
+.token-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 16px;
+}
+.token-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.token-card p { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+.gerar-btn {
+  background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.gerar-btn:hover { opacity: .88; }
+.token-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.token-item {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+}
+.token-num { font-size: 11px; color: var(--text-faint); width: 24px; flex-shrink: 0; }
+.token-link { font-family: monospace; font-size: 11px; color: var(--accent); flex: 1; word-break: break-all; }
+.token-status { font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.token-usado { color: var(--green); }
+.token-livre { color: var(--text-faint); }
+.token-copy {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 10px; font-size: 11px; cursor: pointer; color: var(--text-dim);
+  flex-shrink: 0; transition: all .15s;
+}
+.token-copy:hover { border-color: var(--accent); color: var(--accent); }
+.token-copy.copiado { border-color: var(--green); color: var(--green); }
+
+/* ── AVISO INSUFICIENTE ── */
+.aviso-insuf {
+  background: var(--surface2); border: 1px dashed var(--border); border-radius: 8px;
+  padding: 12px 16px; font-size: 12px; color: var(--text-dim); font-style: italic;
+}
+
+/* ── BOTÕES UTILITÁRIOS ── */
+.util-row { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.util-btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer;
+  color: var(--text); transition: all .15s;
+}
+.util-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+@media(max-width:640px){
+  .topbar { padding: 12px 16px; }
+  .painel { padding: 20px 12px; }
+  .sumario-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">📊</div>
+    <h2>SiMone · Painel</h2>
+    <p>Acesso restrito ao gestor responsável</p>
+    <input class="login-input" type="password" id="senha-input" placeholder="Senha de acesso"
+      onkeydown="if(event.key==='Enter')autenticar()">
+    <button class="login-btn" onclick="autenticar()">Entrar</button>
+    <div class="login-erro" id="login-erro">Senha incorreta.</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main" id="main">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="mark">Si</div>
+      <div>
+        <h1>SiMone Organizacional</h1>
+        <p>Painel de Diagnóstico</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="periodo-badge" id="periodo-badge">—</span>
+      <button class="util-btn" onclick="carregarDoGitHub()">🔄 Atualizar</button>
+    </div>
+  </div>
+
+  <!-- Abas -->
+  <div class="abas">
+    <button class="aba ativa" onclick="trocarAba('diagnostico',this)">📊 Diagnóstico</button>
+    <button class="aba" onclick="trocarAba('convites',this)">🔗 Convites</button>
+  </div>
+
+  <!-- ABA DIAGNÓSTICO -->
+  <div id="aba-diagnostico" class="aba-conteudo ativa">
+
+  <!-- Upload inicial -->
+  <div id="upload-section" class="upload-section">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:48px 32px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">📡</div>
+      <h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Buscando respostas...</h3>
+      <p style="font-size:13px;color:var(--text-dim)" id="gh-status">Conectando ao repositório GitHub</p>
+      <div style="margin-top:24px">
+        <div id="gh-loading" style="font-size:12px;color:var(--text-faint)">⏳ Carregando...</div>
+        <div id="gh-erro" style="display:none">
+          <p style="color:var(--red);font-size:13px;margin-bottom:16px" id="gh-erro-msg"></p>
+          <button class="upload-btn" style="display:inline-block" onclick="carregarDoGitHub()">Tentar novamente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Painel de resultados -->
+  <div class="painel" id="painel">
+    <div class="util-row">
+      <button class="util-btn" onclick="voltarUpload()">← Nova análise</button>
+      <button class="util-btn" onclick="window.print()">🖨 Imprimir</button>
+    </div>
+
+    <!-- Sumário -->
+    <div class="sumario-grid" id="sumario-grid"></div>
+
+    <!-- Índices por setor -->
+    <div class="secao">
+      <div class="secao-titulo">Índices por setor</div>
+      <div class="indices-grid" id="indices-grid"></div>
+    </div>
+
+    <!-- Matriz de fluxo -->
+    <div class="secao">
+      <div class="secao-titulo">Matriz de fluxo (origem → destino)</div>
+      <div class="matriz-wrap" id="matriz-wrap"></div>
+      <p style="font-size:11px;color:var(--text-faint);margin-top:8px">
+        Valores representam intensidade do fluxo incorreto (0–3). Células com borda tracejada indicam dados insuficientes (&lt;3 respondentes).
+      </p>
+    </div>
+
+    <!-- Gap perceptivo -->
+    <div class="secao">
+      <div class="secao-titulo">Gap perceptivo — autopercepção vs. percepção externa</div>
+      <div class="gap-grid" id="gap-grid"></div>
+    </div>
+
+    <!-- IES destacado -->
+    <div class="secao">
+      <div class="secao-titulo">⚠ Saúde operacional e risco de afastamento</div>
+      <div class="ies-grid" id="ies-grid"></div>
+    </div>
+
+    <!-- Padrões detectados -->
+    <div class="secao">
+      <div class="secao-titulo">Padrões detectados</div>
+      <div class="padroes-list" id="padroes-list"></div>
+    </div>
+  </div>
+
+  </div> <!-- fecha aba-diagnostico -->
+
+  <!-- ABA CONVITES -->
+  <div id="aba-convites" class="aba-conteudo">
+    <div class="tokens-wrap">
+
+      <!-- Configuração da agência -->
+      <div class="token-card">
+        <h3>Configuração da agência</h3>
+        <p>Informe o código da agência e as matrículas dos colaboradores. Um link único será gerado para cada um.</p>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <div style="flex:0 0 160px">
+            <label style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px">Código da agência</label>
+            <input id="agencia-codigo" type="text" placeholder="ex: 0842"
+              style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none">
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px">Nome da agência (opcional)</label>
+            <input id="agencia-nome" type="text" placeholder="ex: Agência Centro"
+              style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none">
+          </div>
+        </div>
+
+        <label style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:6px">
+          Matrículas — uma por linha
+        </label>
+        <textarea id="matriculas-input" placeholder="12345678&#10;23456789&#10;34567890&#10;..."
+          style="width:100%;min-height:180px;padding:12px;background:var(--surface2);border:1px solid var(--border);
+          border-radius:8px;color:var(--text);font-family:monospace;font-size:13px;resize:vertical;outline:none;line-height:1.6"></textarea>
+        <div style="font-size:11px;color:var(--text-faint);margin-top:6px" id="matriculas-count">0 matrículas</div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="gerar-btn" onclick="gerarTokensMatriculas()">⚡ Gerar links</button>
+          <button class="gerar-btn" style="background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)" onclick="atualizarStatusTokens()">🔄 Ver status</button>
+        </div>
+        <div id="gerar-status" style="font-size:12px;color:var(--text-dim);margin-top:10px;display:none"></div>
+      </div>
+
+      <!-- Lista de tokens gerados -->
+      <div id="token-lista-wrap"></div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// CONFIGURAÇÃO — troque a senha aqui
+// ═══════════════════════════════════════════════════════════════════════
+const SENHA_GESTOR = 'simone2026';
+
+const SETORES_CONFIG = [
+  { id: 'triagem',            label: 'Triagem',           icon: '🎯' },
+  { id: 'atendimento_varejo', label: 'Atend. Varejo',     icon: '🤝' },
+  { id: 'gerencia_carteira',  label: 'Ger. Carteira',     icon: '💼' },
+  { id: 'caixas_tesouraria',  label: 'Caixas/Tesouraria', icon: '💰' },
+];
+const SETOR_IDS = SETORES_CONFIG.map(s => s.id);
+
+// ═══════════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════════
+function autenticar() {
+  const val = document.getElementById('senha-input').value;
+  if (val === SENHA_GESTOR) {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('main').classList.add('vis');
+    carregarDoGitHub();
+  } else {
+    document.getElementById('login-erro').style.display = 'block';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// GITHUB CONFIG
+// ═══════════════════════════════════════════════════════════════════════
+const GH_TOKEN = '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';
+const GH_OWNER = 'fotosparaprojetos-art';
+const GH_REPO  = 'simone_org';
+const GH_PASTA = 'respostas';
+
+// ═══════════════════════════════════════════════════════════════════════
+// CARREGAR DO GITHUB
+// ═══════════════════════════════════════════════════════════════════════
+let todasRespostas = [];
+
+async function carregarDoGitHub() {
+  document.getElementById('gh-loading').style.display = 'block';
+  document.getElementById('gh-erro').style.display = 'none';
+  document.getElementById('gh-status').textContent = 'Conectando ao repositório GitHub...';
+
+  try {
+    const resp = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PASTA}`,
+      { headers: { 'Authorization': `token ${GH_TOKEN}` } }
+    );
+
+    if (resp.status === 404) {
+      // Pasta ainda não existe — sem respostas
+      document.getElementById('gh-loading').style.display = 'none';
+      document.getElementById('gh-status').textContent = 'Nenhuma resposta recebida ainda.';
+      return;
+    }
+
+    if (!resp.ok) throw new Error(`Erro ${resp.status}`);
+
+    const arquivos = await resp.json();
+    const jsons = arquivos.filter(f => f.name.endsWith('.json'));
+
+    if (jsons.length === 0) {
+      document.getElementById('gh-loading').style.display = 'none';
+      document.getElementById('gh-status').textContent = 'Nenhuma resposta recebida ainda.';
+      return;
+    }
+
+    document.getElementById('gh-status').textContent = `Carregando ${jsons.length} resposta(s)...`;
+
+    todasRespostas = [];
+    await Promise.all(jsons.map(async arq => {
+      const r = await fetch(arq.download_url, {
+        headers: { 'Authorization': `token ${GH_TOKEN}` }
+      });
+      const dados = await r.json();
+      if (dados.setor && dados.respostas) todasRespostas.push(dados);
+    }));
+
+    document.getElementById('gh-loading').style.display = 'none';
+    processarDados();
+
+  } catch(e) {
+    document.getElementById('gh-loading').style.display = 'none';
+    document.getElementById('gh-erro').style.display = 'block';
+    document.getElementById('gh-erro-msg').textContent = e.message || 'Erro ao conectar ao GitHub.';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MOTOR DE CÁLCULO
+// ═══════════════════════════════════════════════════════════════════════
+
+// Pesos das perguntas por índice
+const PESOS = {
+  ICP:  { A1:1, A2:0.8, A3:0.6 },
+  IIR:  { A4:1.2, B1:1, B3:0.8, B4:0.8, E2:1, F3:0.8 },
+  ICE:  { C1:0.8, C5:1, D2:1, D5:1 },
+  IRC:  { A3:0.6, B3:0.8, B4:0.8, C3:1.2, C5:1, E4:1, F2:0.8, G3:1 },
+  IDI:  { D1:1, D3:0.8, D4:0.6 },
+  IOI:  { A4:1.2, B4:0.8, E1:0.8, E2:1, E3:0.6, E4:1, E5:1 },
+  ICS:  { F1:0.6, F2:0.8, F3:0.8 },
+  IES:  { E5:1, G1:1, G2:1.2, G3:1, G4:1.5 },
+};
+
+// Pesos do IGS
+const PESOS_IGS = { ICP:1, IIR:1.5, ICE:1.2, IRC:1.5, IDI:0.8, IDP:1, IOI:1.2, ICS:0.6, IES:1.5 };
+
+// Perguntas direcionais (multi-setor)
+const DIRECIONAIS = ['B2','C2','C4','F4'];
+
+function agregarPorSetor(respostas) {
+  const agg = {};
+  SETOR_IDS.forEach(s => { agg[s] = { n:0, somas:{}, multi:{} }; });
+
+  respostas.forEach(r => {
+    const s = r.setor;
+    if (!agg[s]) return;
+    agg[s].n++;
+    Object.entries(r.respostas).forEach(([k, v]) => {
+      if (DIRECIONAIS.includes(k)) {
+        if (!agg[s].multi[k]) agg[s].multi[k] = {};
+        (Array.isArray(v) ? v : [v]).forEach(destino => {
+          agg[s].multi[k][destino] = (agg[s].multi[k][destino]||0) + 1;
+        });
+      } else {
+        if (agg[s].somas[k] === undefined) agg[s].somas[k] = 0;
+        agg[s].somas[k] += Number(v);
+      }
+    });
+  });
+
+  // Calcular médias
+  const medias = {};
+  SETOR_IDS.forEach(s => {
+    medias[s] = { n: agg[s].n, vals:{}, multi: agg[s].multi };
+    if (agg[s].n === 0) return;
+    Object.entries(agg[s].somas).forEach(([k,soma]) => {
+      medias[s].vals[k] = soma / agg[s].n;
+    });
+    // Normalizar multi como proporção
+    Object.entries(agg[s].multi).forEach(([k, destinos]) => {
+      medias[s].multi[k] = {};
+      Object.entries(destinos).forEach(([d, cnt]) => {
+        medias[s].multi[k][d] = cnt / agg[s].n;
+      });
+    });
+  });
+  return medias;
+}
+
+function calcularIndice(vals, pesosIndice) {
+  let soma = 0, pesototal = 0;
+  Object.entries(pesosIndice).forEach(([k, w]) => {
+    const v = vals[k];
+    if (v !== undefined) { soma += v * w; pesototal += w * 3; }
+  });
+  if (pesototal === 0) return null;
+  return (soma / pesototal) * 3;
+}
+
+function calcularFlowMatrix(medias) {
+  const matrix = {};
+  SETOR_IDS.forEach(o => {
+    matrix[o] = {};
+    SETOR_IDS.forEach(d => { matrix[o][d] = null; });
+  });
+
+  SETOR_IDS.forEach(destino => {
+    const m = medias[destino];
+    if (m.n < 1) return;
+    const b2 = m.multi['B2'] || {};
+    const b1val = m.vals['B1'] || 0;
+    Object.entries(b2).forEach(([origem, prop]) => {
+      if (origem === destino) return;
+      // Percepção do destino pesada em 0.6
+      const contribuicao = b1val * prop * 0.6;
+      if (matrix[origem][destino] === null) matrix[origem][destino] = 0;
+      matrix[origem][destino] += contribuicao;
+    });
+  });
+
+  SETOR_IDS.forEach(origem => {
+    const m = medias[origem];
+    if (m.n < 1) return;
+    const c2 = m.multi['C2'] || {};
+    const c1val = m.vals['C1'] || 0;
+    Object.entries(c2).forEach(([destino, prop]) => {
+      if (destino === origem) return;
+      const contribuicao = c1val * prop * 0.4;
+      if (matrix[origem][destino] === null) matrix[origem][destino] = 0;
+      matrix[origem][destino] += contribuicao;
+    });
+  });
+
+  return matrix;
+}
+
+function calcularCrossEval(medias) {
+  const cross = {};
+  SETOR_IDS.forEach(s => {
+    const self_m = medias[s];
+    const auto = self_m.n >= 3
+      ? (((self_m.vals['D2']||0) + (self_m.vals['D5']||0)) / 2)
+      : null;
+
+    let pesoTotal = 0, somaPeers = 0;
+    SETOR_IDS.forEach(outro => {
+      if (outro === s) return;
+      const m = medias[outro];
+      if (m.n < 3) return;
+      const b2prop = (m.multi['B2']||{})[s] || 0;
+      const f4prop = (m.multi['F4']||{})[s] || 0;
+      const b1 = m.vals['B1'] || 0;
+      const f3 = m.vals['F3'] || 0;
+      const contrib = (b1 * b2prop + f3 * f4prop) / 2;
+      somaPeers += contrib * m.n;
+      pesoTotal += m.n;
+    });
+    const peers = pesoTotal >= 3 ? somaPeers / pesoTotal : null;
+
+    cross[s] = {
+      auto,
+      peers,
+      gap: (auto !== null && peers !== null) ? peers - auto : null,
+      insuf: auto === null || peers === null,
+    };
+  });
+  return cross;
+}
+
+function calcularTudo(respostas) {
+  const medias = agregarPorSetor(respostas);
+  const flow = calcularFlowMatrix(medias);
+  const cross = calcularCrossEval(medias);
+
+  const scores = {};
+  SETOR_IDS.forEach(s => {
+    const m = medias[s];
+    if (m.n === 0) { scores[s] = null; return; }
+    const idx = {};
+    Object.entries(PESOS).forEach(([nome, pesosIdx]) => {
+      idx[nome] = calcularIndice(m.vals, pesosIdx);
+    });
+    idx.IDP = cross[s]?.gap !== null ? Math.min(3, Math.abs(cross[s].gap || 0)) : null;
+    const pesos = Object.entries(PESOS_IGS);
+    let soma = 0, pt = 0;
+    pesos.forEach(([k,w]) => {
+      if (idx[k] !== null && idx[k] !== undefined) { soma += idx[k] * w; pt += w; }
+    });
+    idx.IGS = pt > 0 ? soma / pt : null;
+    scores[s] = { ...idx, n: m.n };
+  });
+
+  return { scores, flowMatrix: flow, crossEval: cross,
+    respondentes: Object.fromEntries(SETOR_IDS.map(s => [s, medias[s].n])) };
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UTILITÁRIOS DE DISPLAY
+// ═══════════════════════════════════════════════════════════════════════
+function faixa(v) {
+  if (v === null || v === undefined) return { cls:'', label:'—', bg:'var(--border)' };
+  if (v < 1)   return { cls:'baixo',   label:'Baixo',   bg:'var(--green)' };
+  if (v < 2)   return { cls:'medio',   label:'Moderado',bg:'var(--yellow)' };
+  if (v <= 2.5)return { cls:'alto',    label:'Alto',    bg:'var(--orange)' };
+               return { cls:'critico', label:'Crítico', bg:'var(--red)' };
+}
+
+function fmt(v) {
+  if (v === null || v === undefined) return '—';
+  return v.toFixed(2);
+}
+
+function setorlabel(id) {
+  return SETORES_CONFIG.find(s => s.id === id)?.label || id;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// RENDERIZAR PAINEL
+// ═══════════════════════════════════════════════════════════════════════
+let dadosCalculados = null;
+
+function processarDados() {
+  if (todasRespostas.length === 0) return;
+  dadosCalculados = calcularTudo(todasRespostas);
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('painel').classList.add('vis');
+
+  // Período
+  const datas = todasRespostas.map(r => new Date(r.timestamp)).filter(d => !isNaN(d));
+  if (datas.length > 0) {
+    const min = new Date(Math.min(...datas));
+    const max = new Date(Math.max(...datas));
+    document.getElementById('periodo-badge').textContent =
+      `${min.toLocaleDateString('pt-BR')} – ${max.toLocaleDateString('pt-BR')}`;
+  }
+
+  renderSumario();
+  renderIndices();
+  renderMatriz();
+  renderGap();
+  renderIES();
+  renderPadroes();
+}
+
+function renderSumario() {
+  const { scores, respondentes } = dadosCalculados;
+  const totalResp = Object.values(respondentes).reduce((a,b) => a+b, 0);
+  const setoresAtivos = SETOR_IDS.filter(s => respondentes[s] > 0).length;
+
+  const igs_vals = SETOR_IDS.map(s => scores[s]?.IGS).filter(v => v !== null && v !== undefined);
+  const igs_medio = igs_vals.length ? igs_vals.reduce((a,b)=>a+b,0)/igs_vals.length : null;
+  const f = faixa(igs_medio);
+
+  const pingpong_max = Math.max(...SETOR_IDS.flatMap(o =>
+    SETOR_IDS.filter(d => d!==o).map(d => dadosCalculados.flowMatrix[o][d]||0)
+  ), 0);
+
+  document.getElementById('sumario-grid').innerHTML = `
+    <div class="sumario-card">
+      <h4>Respondentes</h4>
+      <div class="val">${totalResp}</div>
+      <div class="sub">${setoresAtivos} setor(es) com dados</div>
+    </div>
+    <div class="sumario-card">
+      <h4>IGS Médio da Agência</h4>
+      <div class="val faixa-${f.cls}">${fmt(igs_medio)}</div>
+      <div class="sub">${f.label}</div>
+    </div>
+    <div class="sumario-card">
+      <h4>Maior fluxo incorreto</h4>
+      <div class="val faixa-${faixa(pingpong_max).cls}">${pingpong_max.toFixed(2)}</div>
+      <div class="sub">na matriz origem→destino</div>
+    </div>
+    <div class="sumario-card">
+      <h4>Setores com dados</h4>
+      <div class="val">${setoresAtivos}/4</div>
+      <div class="sub">${SETOR_IDS.filter(s=>respondentes[s]>=3).length} com mín. 3 respondentes</div>
+    </div>
+  `;
+}
+
+function renderIndices() {
+  const { scores } = dadosCalculados;
+  const NOMES = {
+    ICP:'Carga/Pressão', IIR:'Invasão Recebida', ICE:'Carga Emitida',
+    IRC:'Retrabalho Circ.', IDI:'Desnivelamento', IDP:'Divergência Perc.',
+    IOI:'Impacto Operac.', ICS:'Clareza Sistêmica', IES:'Estresse', IGS:'IGS'
+  };
+
+  document.getElementById('indices-grid').innerHTML = SETOR_IDS.map(s => {
+    const sc = scores[s];
+    if (!sc) return `<div class="setor-card"><div class="setor-card-header"><h3>${setorlabel(s)}</h3></div><div class="aviso-insuf">Sem respondentes.</div></div>`;
+    const fi = faixa(sc.IGS);
+    const indices = ['ICP','IIR','ICE','IRC','IDI','IDP','IOI','ICS','IES'];
+    return `
+      <div class="setor-card">
+        <div class="setor-card-header">
+          <div>
+            <h3>${setorlabel(s)}</h3>
+          </div>
+          <div class="igs faixa-${fi.cls}">${fmt(sc.IGS)}</div>
+        </div>
+        ${indices.map(k => {
+          const v = sc[k];
+          const fi2 = faixa(v);
+          const pct = v !== null ? Math.min(100, (v/3)*100) : 0;
+          return `
+            <div class="indice-row">
+              <span class="indice-nome">${k}</span>
+              <div class="indice-bar-wrap">
+                <div class="indice-bar bar-${fi2.cls}" style="width:${pct}%"></div>
+              </div>
+              <span class="indice-val faixa-${fi2.cls}">${fmt(v)}</span>
+            </div>
+          `;
+        }).join('')}
+        <div class="respondentes-badge">👥 ${sc.n} respondente(s)${sc.n < 3 ? ' — ⚠ abaixo do mínimo' : ''}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMatriz() {
+  const { flowMatrix, respondentes } = dadosCalculados;
+  const ativos = SETOR_IDS.filter(s => respondentes[s] > 0);
+  if (ativos.length < 2) {
+    document.getElementById('matriz-wrap').innerHTML = '<div class="aviso-insuf">Dados insuficientes para gerar matriz (mín. 2 setores).</div>';
+    return;
+  }
+
+  const maxVal = Math.max(...ativos.flatMap(o => ativos.filter(d=>d!==o).map(d => flowMatrix[o][d]||0)), 0.01);
+
+  let html = `<table class="matriz"><thead><tr>
+    <th>Origem ↓ · Destino →</th>
+    ${ativos.map(d => `<th>${setorlabel(d)}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  ativos.forEach(origem => {
+    html += `<tr><td class="origem">${setorlabel(origem)}</td>`;
+    ativos.forEach(destino => {
+      if (origem === destino) {
+        html += `<td class="diagonal"><span class="cell-val">—</span></td>`;
+        return;
+      }
+      const v = flowMatrix[origem][destino];
+      const insuf = (respondentes[origem]||0) < 3 || (respondentes[destino]||0) < 3;
+      if (v === null || v === undefined) {
+        html += `<td style="${insuf ? 'border:2px dashed var(--border)' : ''}"><span class="cell-val" style="color:var(--text-faint)">—</span></td>`;
+        return;
+      }
+      const fi = faixa(v);
+      const opacity = Math.max(0.15, v / maxVal * 0.7);
+      html += `
+        <td style="position:relative;${insuf?'border:2px dashed var(--border)':''}"
+            title="${setorlabel(origem)} → ${setorlabel(destino)}: ${v.toFixed(2)}${insuf?' (dados insuficientes)':''}">
+          <div class="cell-bg" style="background:${fi.bg};opacity:${opacity};position:absolute;inset:0;"></div>
+          <span class="cell-val faixa-${fi.cls}" style="position:relative;z-index:1">${v.toFixed(2)}</span>
+        </td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('matriz-wrap').innerHTML = html;
+}
+
+function renderGap() {
+  const { crossEval, respondentes } = dadosCalculados;
+  document.getElementById('gap-grid').innerHTML = SETOR_IDS.map(s => {
+    const c = crossEval[s];
+    if (!c) return '';
+    const gap = c.gap;
+    const fi = gap !== null ? faixa(Math.abs(gap)) : faixa(null);
+    const sinal = gap !== null ? (gap > 0 ? '+' : '') : '';
+    return `
+      <div class="gap-card">
+        <h4>${setorlabel(s)}</h4>
+        ${c.insuf ? `<div class="gap-insuf">Dados insuficientes para calcular gap (mínimo 3 respondentes em cada lado).</div>` : `
+          <div class="gap-row"><span>Autopercepção</span><span class="gap-val">${fmt(c.auto)}</span></div>
+          <div class="gap-row"><span>Percepção externa</span><span class="gap-val">${fmt(c.peers)}</span></div>
+          <div class="gap-delta faixa-${fi.cls}">Gap: ${sinal}${fmt(gap)}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">
+            ${gap === null ? '' : gap > 0.5 ? '⚠ Setor subestima o problema que gera para os outros.' :
+              gap < -0.5 ? '↓ Setor superestima seus próprios problemas.' :
+              '✓ Percepção alinhada com a visão externa.'}
+          </div>
+        `}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderIES() {
+  const { scores } = dadosCalculados;
+  document.getElementById('ies-grid').innerHTML = SETOR_IDS.map(s => {
+    const sc = scores[s];
+    if (!sc) return '';
+    const v = sc.IES;
+    const fi = faixa(v);
+    return `
+      <div class="ies-card ${fi.cls}">
+        <div class="ies-setor">${setorlabel(s)}</div>
+        <div class="ies-val faixa-${fi.cls}">${fmt(v)}</div>
+        <div class="ies-label faixa-${fi.cls}">${fi.label}</div>
+        ${sc.n < 3 ? '<div style="font-size:10px;color:var(--text-faint);margin-top:6px">⚠ Dados insuficientes</div>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPadroes() {
+  const { scores, flowMatrix, crossEval, respondentes } = dadosCalculados;
+  const padroes = [];
+
+  SETOR_IDS.forEach(s => {
+    const sc = scores[s];
+    if (!sc || sc.n < 3) return;
+
+    // Padrão 1: Fluxo errado (IIR alto + ICS baixo)
+    if ((sc.IIR||0) >= 1.5 && (sc.ICS||0) <= 1) {
+      padroes.push({
+        icon: '🔀', titulo: 'Fluxo incorreto de entrada',
+        setores: setorlabel(s), sev: sc.IIR >= 2 ? 'critico' : 'alto',
+        texto: `O setor recebe volume relevante de demandas que não são suas, sem critérios claros de encaminhamento. Isso sugere triagem inadequada ou ausência de protocolo de direcionamento.`,
+      });
+    }
+
+    // Padrão 2: Retrabalho circular (IRC alto)
+    if ((sc.IRC||0) >= 1.8) {
+      padroes.push({
+        icon: '🔄', titulo: 'Retrabalho circular',
+        setores: setorlabel(s), sev: sc.IRC >= 2.5 ? 'critico' : 'alto',
+        texto: `Demandas circulam entre setores sem resolução definitiva. Alta taxa de devolução indica que o encaminhamento não está chegando ao destino correto ou o destino não resolve.`,
+      });
+    }
+
+    // Padrão 3: Gargalo de habilidade (IDI alto + ICS baixo + gap baixo)
+    const gap = crossEval[s]?.gap;
+    if ((sc.IDI||0) >= 1.5 && (sc.ICS||0) <= 1.2 && (gap === null || Math.abs(gap) < 0.5)) {
+      padroes.push({
+        icon: '⚙️', titulo: 'Gargalo de habilidade singular',
+        setores: setorlabel(s), sev: sc.IDI >= 2 ? 'critico' : 'medio',
+        texto: `Distribuição interna desigual com percepção alinhada sugere capacidade concentrada em membros específicos, não evasão. O setor está genuinamente travado, não evitando trabalho. Recomenda-se capacitação cruzada.`,
+      });
+    }
+
+    // Padrão 4: Evasão circular (ICE alto + gap alto)
+    if ((sc.ICE||0) >= 1.5 && gap !== null && gap > 0.8) {
+      padroes.push({
+        icon: '↩️', titulo: 'Evasão circular detectada',
+        setores: setorlabel(s), sev: gap > 1.5 ? 'critico' : 'alto',
+        texto: `O setor reporta pouco repasse indevido, mas outros setores relatam o contrário. Esse gap perceptivo alto indica que o setor tem mais capacidade de resolução do que admite. Requer intervenção de gestão e accountability.`,
+      });
+    }
+
+    // Padrão 5: Risco de afastamento (IES alto)
+    if ((sc.IES||0) >= 2) {
+      padroes.push({
+        icon: '🏥', titulo: 'Risco de afastamento',
+        setores: setorlabel(s), sev: sc.IES >= 2.5 ? 'critico' : 'alto',
+        texto: `Índice de Estresse e Sustentabilidade em nível crítico. Sinais de desgaste crônico, acúmulo persistente e relatos de cansaço. Risco concreto de LTS e afastamentos em cascata. Requer ação imediata.`,
+      });
+    }
+  });
+
+  if (padroes.length === 0) {
+    document.getElementById('padroes-list').innerHTML = `
+      <div class="aviso-insuf">Nenhum padrão crítico detectado nos dados disponíveis. Verifique se há respondentes suficientes por setor (mínimo 3).</div>`;
+    return;
+  }
+
+  document.getElementById('padroes-list').innerHTML = padroes.map(p => `
+    <div class="padrao-card">
+      <div class="padrao-icon">${p.icon}</div>
+      <div class="padrao-body">
+        <h4>${p.titulo}</h4>
+        <div class="setores-afetados">Setor: ${p.setores}</div>
+        <p>${p.texto}</p>
+        <span class="padrao-severidade sev-${p.sev}">${p.sev === 'critico' ? '🔴 Crítico' : p.sev === 'alto' ? '🟠 Alto' : '🟡 Moderado'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════════════════════════════════
+function voltarUpload() {
+  document.getElementById('painel').classList.remove('vis');
+  document.getElementById('upload-section').style.display = 'block';
+  todasRespostas = [];
+  carregarDoGitHub();
+}
+
+function trocarAba(id, btn) {
+  document.querySelectorAll('.aba-conteudo').forEach(a => a.classList.remove('ativa'));
+  document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+  document.getElementById('aba-' + id).classList.add('ativa');
+  btn.classList.add('ativa');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TOKENS DE CONVITE COM MATRÍCULAS
+// ═══════════════════════════════════════════════════════════════════════
+const GH_BASE_URL = `https://fotosparaprojetos-art.github.io/simone_org/simone-questionario.html`;
+const TOKENS_ARQUIVO = 'tokens/tokens.json';
+
+// Contador de matrículas em tempo real
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('matriculas-input');
+  if (ta) ta.addEventListener('input', () => {
+    const todas = lerMatriculas();
+    const invalidas = todas.filter(m => !validarFormato(m));
+    const el = document.getElementById('matriculas-count');
+    if (invalidas.length > 0) {
+      el.textContent = `${todas.length} matrícula(s) — ⚠ ${invalidas.length} com formato inválido`;
+      el.style.color = 'var(--orange)';
+    } else {
+      el.textContent = `${todas.length} matrícula(s) válida(s)`;
+      el.style.color = 'var(--green)';
+    }
+  });
+});
+
+function lerMatriculas() {
+  const txt = document.getElementById('matriculas-input')?.value || '';
+  return txt.split('\n').map(m => m.trim().toLowerCase()).filter(m => m.length > 0);
+}
+
+function validarFormato(m) {
+  return /^[a-z]\d{6}$/.test(m);
+}
+
+function gerarCodigoToken() {
+  const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+  let t = '';
+  for (let i = 0; i < 10; i++) t += chars[Math.floor(Math.random() * chars.length)];
+  return t;
+}
+
+async function gerarTokensMatriculas() {
+  const matriculas = lerMatriculas();
+  if (matriculas.length === 0) {
+    alert('Informe ao menos uma matrícula.');
+    return;
+  }
+
+  const invalidas = matriculas.filter(m => !validarFormato(m));
+  if (invalidas.length > 0) {
+    alert(`Matrículas com formato inválido (esperado: 1 letra + 6 números, ex: c123456):\n\n${invalidas.join('\n')}`);
+    return;
+  }
+
+  const agencia = document.getElementById('agencia-codigo').value.trim() || 'AG';
+  const status = document.getElementById('gerar-status');
+  status.style.display = 'block';
+  status.textContent = `Gerando ${matriculas.length} links...`;
+
+  // Buscar tokens existentes
+  let existentes = [];
+  let sha = undefined;
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${TOKENS_ARQUIVO}`,
+      { headers: { 'Authorization': `token ${GH_TOKEN}` } }
+    );
+    if (r.ok) {
+      const data = await r.json();
+      sha = data.sha;
+      existentes = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    }
+  } catch(e) {}
+
+  // Gerar novos tokens vinculados às matrículas
+  const novos = matriculas.map(m => ({
+    token: gerarCodigoToken(),
+    matricula: m,
+    email: `${m}@corp.caixa.gov.br`,
+    agencia,
+    usado: false,
+    criado: new Date().toISOString(),
+  }));
+
+  const todos = [...existentes, ...novos];
+  const conteudo = btoa(unescape(encodeURIComponent(JSON.stringify(todos, null, 2))));
+
+  const body = { message: `tokens agencia ${agencia} — ${matriculas.length} matrículas`, content: conteudo };
+  if (sha) body.sha = sha;
+
+  const resp = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${TOKENS_ARQUIVO}`,
+    {
+      method: 'PUT',
+      headers: { 'Authorization': `token ${GH_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (resp.ok) {
+    status.textContent = `✅ ${novos.length} links gerados com sucesso.`;
+    renderTokens(todos);
+  } else {
+    status.textContent = '❌ Erro ao salvar tokens. Tente novamente.';
+  }
+}
+
+async function atualizarStatusTokens() {
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${TOKENS_ARQUIVO}`,
+      { headers: { 'Authorization': `token ${GH_TOKEN}` } }
+    );
+    if (!r.ok) { alert('Nenhum token gerado ainda.'); return; }
+    const data = await r.json();
+    const tokens = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    renderTokens(tokens);
+  } catch(e) { alert('Erro ao buscar tokens.'); }
+}
+
+function renderTokens(tokens) {
+  const usados = tokens.filter(t => t.usado).length;
+  const livres = tokens.filter(t => !t.usado).length;
+
+  document.getElementById('token-lista-wrap').innerHTML = `
+    <div class="token-card">
+      <div style="display:flex;gap:24px;font-size:13px;margin-bottom:16px;flex-wrap:wrap">
+        <span>✅ Responderam: <strong style="color:var(--green)">${usados}</strong></span>
+        <span>⏳ Pendentes: <strong style="color:var(--yellow)">${livres}</strong></span>
+        <span>Total: <strong>${tokens.length}</strong></span>
+      </div>
+      <button class="gerar-btn" style="background:var(--green);font-size:12px;padding:8px 16px" onclick="exportarExcel()">
+        📥 Exportar Excel para mala direta
+      </button>
+    </div>
+    <div class="token-lista">
+      ${tokens.map((t, i) => {
+        const link = `${GH_BASE_URL}?token=${t.token}`;
+        return `
+          <div class="token-item">
+            <span class="token-num">${i+1}</span>
+            <span class="token-link" style="min-width:80px;max-width:80px;color:var(--text-dim)">${t.matricula || '—'}</span>
+            <span class="token-link">${link}</span>
+            <span class="token-status ${t.usado ? 'token-usado' : 'token-livre'}">${t.usado ? '✓' : '—'}</span>
+            <button class="token-copy" onclick="copiarLink('${link}', this)" ${t.usado ? 'disabled style="opacity:.4"' : ''}>Copiar</button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  // Guardar tokens em memória para exportação
+  window._tokensAtual = tokens;
+}
+
+function exportarExcel() {
+  const tokens = window._tokensAtual;
+  if (!tokens || tokens.length === 0) return;
+
+  const corpoEmail = (link) =>
+    `Olá! Você está recebendo este convite para participar do SiMone Organizacional, ` +
+    `um projeto de melhoria do fluxo de trabalho da nossa agência. ` +
+    `Queremos entender como as demandas circulam entre os setores e onde encontramos obstáculos no dia a dia. ` +
+    `\n\nSua participação é muito importante. ` +
+    `\n\nSobre sua privacidade: sua matrícula foi usada apenas para enviar este convite. ` +
+    `Ela não será registrada nas respostas e não ficará associada ao que você responder. ` +
+    `O gestor da unidade receberá apenas um consolidado geral da agência — ` +
+    `em nenhum momento será disponibilizado qualquer resultado individualizado ou associado a uma matrícula. ` +
+    `\n\nEste link é pessoal e de uso único. Após responder, ele será desativado automaticamente. ` +
+    `\n\nAcesse aqui: ${link}`;
+
+  // Gerar CSV com BOM para Excel reconhecer UTF-8
+  const bom = '\uFEFF';
+  const header = 'Agencia;Matricula;Email;Link;CorpoEmail;Status\n';
+  const rows = tokens.map(t => {
+    const link = `${GH_BASE_URL}?token=${t.token}`;
+    const corpo = corpoEmail(link);
+    return `${t.agencia || ''};${t.matricula || ''};${t.email || ''};${link};"${corpo}";${t.usado ? 'Respondeu' : 'Pendente'}`;
+  }).join('\n');
+
+  const csv = bom + header + rows;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ag = tokens[0]?.agencia || 'agencia';
+  a.href = url;
+  a.download = `simone-convites-${ag}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copiarLink(link, btn) {
+  navigator.clipboard.writeText(link).then(() => {
+    btn.textContent = '✓';
+    btn.classList.add('copiado');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copiado'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
