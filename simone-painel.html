@@ -521,10 +521,13 @@ async function carregarDoGitHub() {
 
     todasRespostas = [];
     await Promise.all(jsons.map(async arq => {
-      const r = await fetch(arq.download_url, {
-        headers: { 'Authorization': `token ${GH_TOKEN}` }
-      });
-      const dados = await r.json();
+      const r = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PASTA}/${arq.name}`,
+        { headers: { 'Authorization': `token ${GH_TOKEN}` } }
+      );
+      const meta = await r.json();
+      const texto = decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
+      const dados = JSON.parse(texto);
       if (dados.setor && dados.respostas) todasRespostas.push(dados);
     }));
 
